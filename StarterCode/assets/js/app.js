@@ -6,9 +6,9 @@ let svgHeight = 600;
 //setting up a margin so I can have axis titles later
 let chartMargin = {
     top: 30,
-    right: 30,
-    bottom: 30,
-    left: 30
+    right: 40,
+    bottom: 100,
+    left: 100
 };
 
 //setting the chart width and height
@@ -18,8 +18,8 @@ let chartHeight = svgHeight - chartMargin.top - chartMargin.bottom;
 //appending the svg wrapper to the html
 let scatter = d3.select('#scatter')
             .append('svg')
-            .attr('width',chartWidth)
-            .attr('height',chartHeight);
+            .attr('width',svgWidth)
+            .attr('height',svgHeight);
 
 //appending a chartgroup
 let chartGroup = scatter.append('g')
@@ -45,28 +45,34 @@ let data = d3.csv('./assets/data/data.csv').then(data => {
     //the max values don't get clipped circles
     let radius = 15;
     //creating scale functions
+    console.log(d3.min(data, data=>data.age))
     let ageScale = d3.scaleLinear()
-                         .domain([0, d3.max(data, data=>data.age)])
-                         .range([0,chartWidth - radius]);
+                         .domain([20, d3.max(data, data=>data.age)])
+                         .range([0,chartWidth]);
 
+    console.log(d3.min(data, data=>data.income))
     let incomeScale = d3.scaleLinear()
-                        .domain([0, d3.max(data, data => data.income)])
-                        .range([0,chartWidth - radius]);
+                        .domain([30000, d3.max(data, data => data.income)])
+                        .range([0,chartWidth]);
 
+    console.log(d3.min(data, data=>data.poverty))
     let povertyScale = d3.scaleLinear()
-                         .domain([0, d3.max(data, data => data.poverty)])
-                         .range([0,chartWidth - radius]);
+                         .domain([8, d3.max(data, data => data.poverty)])
+                         .range([0,chartWidth]);
 
+    console.log(d3.min(data, data=>data.healthcare))
     let healthcareScale = d3.scaleLinear()
-                         .domain([0, d3.max(data, data => data.healthcare)])
+                         .domain([4, d3.max(data, data => data.healthcare)])
                          .range([chartHeight,0]);
 
+    console.log(d3.min(data, data=>data.obesity))
     let obesityScale = d3.scaleLinear()
-                         .domain([0, d3.max(data, data => data.obesity)])
+                         .domain([20, d3.max(data, data => data.obesity)])
                          .range([chartHeight,0]);
 
+    console.log(d3.min(data, data=>data.smokes))
     let smokesScale = d3.scaleLinear()
-                         .domain([0, d3.max(data, data => data.smokes)])
+                         .domain([9, d3.max(data, data => data.smokes)])
                          .range([chartHeight,0]);
 
     //creating axes
@@ -80,7 +86,7 @@ let data = d3.csv('./assets/data/data.csv').then(data => {
     //appending axes to the chart
     chartGroup.append('g')
               .attr('transform',`translate(0, ${chartHeight})`)
-              .call(incomeAxis);
+              .call(povertyAxis);
     chartGroup.append('g')
               .call(healthcareAxis);
 
@@ -89,18 +95,22 @@ let data = d3.csv('./assets/data/data.csv').then(data => {
                                  .data(data)
                                  .enter()
                                  .append('circle')
-                                 .attr('cx', data => incomeScale(data.income))
+                                 .attr('cx', data => povertyScale(data.poverty))
                                  .attr('cy', data => healthcareScale(data.healthcare))
-                                 .attr('r','10')
-                                 .attr('fill','blue')
-                                 .attr('opacity','.5')
+                                 .attr('r',`${radius}`)
+                                 .classed('stateCircle',true)
+                                 
 
-                     circlesGroup.append('text')
-                                 .attr('dx',data => incomeScale(data.income))
-                                 .attr('dy',data => healthcareScale(data.healthcare))
-                                 .text(data => data.abbr);
+    let states = chartGroup.selectAll('.aText')
+                            .data(data)
+                            .enter()
+                            .append('text')
+                            .attr('x',data => povertyScale(data.poverty))
+                            .attr('y',data => healthcareScale(data.healthcare)+(radius/3))
+                            .classed('aText', true)
+                            .text(data => data.abbr);
 
-    //creating labels
+    //creating axis labels
     chartGroup.append('text')
               .attr('transform', 'rotate(-90)')
               .attr('y', 0 - chartMargin.left + 40)
@@ -111,5 +121,5 @@ let data = d3.csv('./assets/data/data.csv').then(data => {
     chartGroup.append('text')
               .attr('transform',`translate(${chartWidth/2},${chartHeight + chartMargin.top + 30})`)
               .attr('class','axisText')
-              .text('Average Household Income')
+              .text('Poverty Level')
 });
